@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--< https://logback.qos.ch/manual/ >-->
+<configuration scan="true" scanPeriod="30 seconds">
+
+<!--    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>-->
+    <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel"/>
+
+    <appender name="STDOUT"
+              class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <encoder>
+            <pattern>
+                [%thread] %date{"yyyy-MM-dd HH:mm:ss,SSS", Asia/Shanghai} |-%level in %logger{32}-line:%line - %message%n%xException
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!--<https://logback.qos.ch/manual/appenders.html-TimeBasedRollingPolicy/SizeAndTimeBasedRollingPolicy >-->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--<when run in linux, the directory of logback is just under the currency project package>-->
+        <file>./logs/akka.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- daily rollover yyyy-MM-dd_HH_mm, default yyyy-MM-dd -->
+            <fileNamePattern>./logs/akka.%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+
+            <!-- keep 30 days' worth of history capped at 1GB total size, one log's max size is 100MB -->
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>
+                [%thread] %date{"yyyy-MM-dd HH:mm:ss,SSS", Asia/Shanghai} |-%level in %logger{32}-line:%line - %message%n%xException
+            </pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <param name="BufferSize" value="8192"/>
+        <appender-ref ref="STDOUT"/>
+        <!-- 增加以下配置，否则日志中类似行号的数据会显示成? -->
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <param name="BufferSize" value="8192"/>
+        <appender-ref ref="FILE"/>
+        <!-- 增加以下配置，否则日志中类似行号的数据会显示成? -->
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <logger name="akka" level="INFO"/>
+    <logger name="akka.stream.Log" level="INFO"/>
+
+    <logger name="actors" level="INFO"/>
+    <!-- 网上关于同步和异步的性能说法不一，需要根据实际情况测试后进行调整 -->
+    <root level="INFO">
+        <!--appender-ref ref="STDOUT"/-->
+        <appender-ref ref="ASYNC_STDOUT"/>
+        <!--appender-ref ref="FILE"/-->
+        <appender-ref ref="ASYNC_FILE"/>
+    </root>
+
+</configuration>

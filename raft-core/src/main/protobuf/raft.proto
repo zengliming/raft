@@ -1,0 +1,115 @@
+syntax = "proto3";
+package proto;
+
+
+option java_package = "com.zengliming.raft.proto";
+//option java_outer_classname = "Example";
+option java_multiple_files = true;
+
+
+message NodeId {
+
+  string name = 1;
+
+}
+
+
+message NodeEndpoint {
+  NodeId id = 1;
+  string host = 2;
+  int32 port = 3;
+}
+
+enum MemberRole {
+  LEADER = 0;
+  FOLLOW = 1;
+  CANDIDATE = 2;
+}
+
+message Member {
+  NodeId id = 1;
+  int32 current_term = 2; // 当前任期
+  MemberRole role = 3;
+  NodeId voted_for = 4; // 投了票的节点
+  NodeEndpoint node_endpoint = 5;
+  ReplicatingState replicating_state = 6;// 复制状态
+}
+
+message ReplicatingState{
+
+}
+
+message RaftCommand {
+  int64 command_id = 1;
+  oneof payload {
+    RequestVote request_vote = 2; // 请求投票
+    RequestVoteResult request_vote_result = 3; // 投票结果
+    AppendEntries append_entries = 4; // 日志追加
+    AppendEntriesResult append_entries_result = 5; // 日志追加结果
+    RequestJoin request_join = 6; // 请求加入
+    RequestLeave request_leave = 7; // 请求离开
+    SyncMembers sync_members = 8; // 同步成员
+    RoleChange role_change = 9; // 角色发生变更
+  }
+}
+
+
+
+
+message RpcCommand {
+  repeated NodeEndpoint target_node_endpoints = 1;
+  oneof payload {
+    RequestVote request_vote = 2;
+    RequestVoteResult request_vote_result = 3;
+    AppendEntries append_entries = 4;
+    AppendEntriesResult append_entries_result = 5;
+
+  }
+}
+
+message RequestJoin {
+  NodeEndpoint join_endpoint = 1; // 请求加入
+}
+
+message RequestLeave {
+  NodeEndpoint leave_endpoint = 1; // 请求离开
+}
+
+message RequestVote {
+  int32 term = 1;
+  NodeEndpoint node_endpoint = 2; // 候选者节点，即为发送者自己
+  int32 last_log_index = 3; // 候选者最后一条日志的索引
+  int32 last_log_term = 4; // 候选者最后一条日志的term
+}
+
+message RequestVoteResult {
+  int32 term = 1; // 选举term
+  bool vote_granted = 2; //是否投票
+}
+
+message AppendEntries{
+  int32 term = 1; // leader当前任期
+  NodeId node_id = 2; // leader节点
+  int32 pre_log_index = 3; // 上一条日志的索引
+  int32 pre_log_term = 4; // 上一条日志的任期
+  repeated Entry entry = 5; // 日志数据
+  int32 leader_commit_index = 6; // leader节点已经commit了的索引
+
+  message Entry{
+
+  }
+}
+
+message AppendEntriesResult {
+  int32 term = 1; // leader当前任期
+  bool success = 2; // 是否追加成功
+}
+
+message SyncMembers {
+  repeated Member members = 1;
+}
+
+message RoleChange{
+  NodeId leader_id = 1;
+  MemberRole target_role = 2;
+}

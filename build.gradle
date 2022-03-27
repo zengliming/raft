@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+    id 'idea'
+}
+
+ext {
+    protobufVersion = '3.19.4'
+    nettyVersion = '4.1.74.Final'
+    lombokVersion = '1.18.22'
+    junitVersion = '5.7.2'
+    log4jVersion = '2.17.2'
+    scalaVersion = "2.13"
+    akkaVersion = "2.6.19"
+}
+
+allprojects {
+
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    group 'com.zengliming'
+    version '1.0-SNAPSHOT'
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    repositories {
+        maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+        mavenCentral()
+    }
+}
+
+subprojects {
+
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    dependencies {
+        // implementation "org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion"
+        testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+    }
+    test {
+        useJUnitPlatform()
+    }
+}

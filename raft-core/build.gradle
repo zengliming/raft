@@ -1,0 +1,36 @@
+plugins {
+    id "com.google.protobuf" version "0.8.18"
+}
+
+dependencies {
+    implementation "io.netty:netty-handler:$nettyVersion"
+    implementation "com.google.protobuf:protobuf-java:$protobufVersion"
+    implementation "com.google.protobuf:protobuf-java-util:$protobufVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    implementation 'ch.qos.logback:logback-classic:1.2.11'
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    implementation "com.typesafe.akka:akka-actor-typed_$scalaVersion:$akkaVersion"
+}
+
+sourceSets {
+    main {
+        proto {
+            srcDir "src/main/protobuf"
+        }
+        java {
+        }
+    }
+    test {
+        proto {
+            srcDir "src/test/protobuf"
+        }
+    }
+}
+
+protobuf {
+    // Configure the protoc executable
+    protoc {
+        // Download from repositories
+        artifact = 'com.google.protobuf:protoc:3.0.0'
+    }
+}

@@ -1,0 +1,10 @@
+syntax = "proto3";
+package proto.actor;
+
+option java_package = "com.zengliming.raft.proto.actor";
+//option java_outer_classname = "Example";
+option java_multiple_files = true;
+
+message StartActor {
+  repeated string actor_class_name = 1;
+}
