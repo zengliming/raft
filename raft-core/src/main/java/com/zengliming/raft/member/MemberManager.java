@@ -202,6 +202,7 @@ public class MemberManager {
 
     public void onSyncMembers(List<Member> members) {
         this.memberMap.clear();
+        log.info("receive members {}", members);
         for (Member member : members) {
             this.memberMap.put(member.getId(), member);
         }

@@ -9,6 +9,7 @@ import com.zengliming.raft.member.MemberManager;
 import com.zengliming.raft.proto.*;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -29,6 +30,10 @@ public class RaftActor extends CommonActor {
                 .setPort(RaftContext.getRaftConfig().getJoinPort())
                 .build();
         this.memberManager = new MemberManager(memberEndpoint);
+        this.init(memberEndpoint);
+    }
+
+    private void init(final MemberEndpoint memberEndpoint) {
         try {
             final GeneratedMessageV3 members = RaftContext.ask(RpcActor.getId(), RpcCommand.newBuilder()
                     .addTargetMemberEndpoints(memberEndpoint)
@@ -37,12 +42,8 @@ public class RaftActor extends CommonActor {
                             .build()).build(), 3000L).toCompletableFuture().join();
             this.memberManager.onSyncMembers(((SyncMembers) members).getMembersList());
         }catch (Exception e) {
-            log.error("", e);
+            log.error("cannot receive request join response: {}", e.getMessage());
         }
-        init();
-    }
-
-    private void init() {
         RaftContext.setMemberManager(this.memberManager);
         RaftContext.publish(getId(), RaftCommand.newBuilder()
                 .setRoleChange(RoleChange.newBuilder()
@@ -66,7 +67,6 @@ public class RaftActor extends CommonActor {
             switch (raftCommand.getPayloadCase()) {
                 case REQUEST_JOIN:
                     this.memberManager.join(raftCommand.getRequestJoin());
-                    this.memberManager.getMemberMap().values();
                     reply(()->SyncMembers.newBuilder()
                             .addAllMembers(this.memberManager.getMemberMap().values())
                             .build());
@@ -87,7 +87,8 @@ public class RaftActor extends CommonActor {
                     }
                     break;
                 case SYNC_MEMBERS:
-                    this.memberManager.onSyncMembers(raftCommand.getSyncMembers().getMembersList());
+                    final List<Member> members = raftCommand.getSyncMembers().getMembersList();
+                    this.memberManager.onSyncMembers(members);
                     break;
                 case ROLE_CHANGE:
                     this.memberManager.changeRole(raftCommand.getRoleChange());

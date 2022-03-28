@@ -1,11 +1,10 @@
 package com.zengliming.raft.member.role;
 
 import com.google.common.collect.Lists;
+import com.zengliming.raft.actor.RaftActor;
 import com.zengliming.raft.actor.RpcActor;
 import com.zengliming.raft.context.RaftContext;
-import com.zengliming.raft.proto.MemberRole;
-import com.zengliming.raft.proto.RequestVote;
-import com.zengliming.raft.proto.RpcCommand;
+import com.zengliming.raft.proto.*;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -31,9 +30,12 @@ public class CandidateMemberRole extends AbstractMemberRole {
         super.setLastTimestamp(System.currentTimeMillis());
         super.setRunnable(() -> {
             if (System.currentTimeMillis() - super.getLastTimestamp() > super.getTimeout()) {
-                log.info("request vote timeout, resend request!");
-                this.votes = 1;
-                this.requestVote();
+                log.info("request vote timeout, change role to follower!");
+                RaftContext.publish(RaftActor.getId(), RaftCommand.newBuilder()
+                        .setRoleChange(RoleChange.newBuilder()
+                                .setTargetRole(MemberRole.FOLLOW)
+                                .build())
+                        .build());
                 super.setLastTimestamp(System.currentTimeMillis());
             }
         });

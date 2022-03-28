@@ -45,7 +45,7 @@ public abstract class CommonActor extends AbstractBehavior<GeneratedMessageV3> {
         } catch (Exception e) {
             log.error("", e);
         }
-        log.info("process message cost {} ms", System.currentTimeMillis() - start);
+        log.debug("process message cost {} ms", System.currentTimeMillis() - start);
         return this;
     }
 
