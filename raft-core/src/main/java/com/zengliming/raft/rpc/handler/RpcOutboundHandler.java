@@ -1,7 +1,7 @@
 package com.zengliming.raft.rpc.handler;
 
 import com.zengliming.raft.actor.RaftActor;
-import com.zengliming.raft.context.NodeContext;
+import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.proto.RaftCommand;
 import com.zengliming.raft.proto.RpcCommand;
 import io.netty.channel.ChannelHandlerContext;
@@ -20,7 +20,7 @@ public class RpcOutboundHandler extends SimpleChannelInboundHandler<RpcCommand> 
         switch (rpcMessage.getPayloadCase()) {
             case REQUEST_VOTE_RESULT:
                 log.info("receive vote response!");
-                NodeContext.publish(RaftActor.getId(), RaftCommand.newBuilder()
+                RaftContext.publish(RaftActor.getId(), RaftCommand.newBuilder()
                                 .setRequestVoteResult(rpcMessage.getRequestVoteResult())
                         .build());
                 break;

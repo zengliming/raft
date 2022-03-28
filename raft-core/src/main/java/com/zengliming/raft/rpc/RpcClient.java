@@ -1,7 +1,7 @@
 package com.zengliming.raft.rpc;
 
 import com.google.protobuf.GeneratedMessageV3;
-import com.zengliming.raft.proto.NodeEndpoint;
+import com.zengliming.raft.proto.MemberEndpoint;
 import com.zengliming.raft.proto.RpcCommand;
 import com.zengliming.raft.rpc.handler.RpcOutboundHandler;
 import io.netty.bootstrap.Bootstrap;
@@ -23,13 +23,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RpcClient {
 
-    private final NodeEndpoint nodeEndpoint;
+    private final MemberEndpoint memberEndpoint;
     private EventLoopGroup eventLoopGroup;
 
     private Channel channel;
 
-    public RpcClient(NodeEndpoint nodeEndpoint) throws Exception {
-        this.nodeEndpoint = nodeEndpoint;
+    public RpcClient(MemberEndpoint memberEndpoint) throws Exception {
+        this.memberEndpoint = memberEndpoint;
         connect();
     }
 
@@ -57,12 +57,12 @@ public class RpcClient {
                     }
                 });
 
-        ChannelFuture channelFuture = bootstrap.connect(nodeEndpoint.getHost(), nodeEndpoint.getPort()).sync();
+        ChannelFuture channelFuture = bootstrap.connect(memberEndpoint.getHost(), memberEndpoint.getPort()).sync();
         this.channel = channelFuture.channel();
     }
 
     public void request(GeneratedMessageV3 messageV3) {
-        log.info("rpc msg {}", messageV3);
+        log.debug("rpc msg {}", messageV3);
         this.channel.writeAndFlush(messageV3);
     }
 

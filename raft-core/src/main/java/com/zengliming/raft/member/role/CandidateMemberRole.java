@@ -1,10 +1,11 @@
-package com.zengliming.raft.node.role;
+package com.zengliming.raft.member.role;
 
 import com.google.common.collect.Lists;
-import com.zengliming.raft.actor.RaftActor;
 import com.zengliming.raft.actor.RpcActor;
-import com.zengliming.raft.context.NodeContext;
-import com.zengliming.raft.proto.*;
+import com.zengliming.raft.context.RaftContext;
+import com.zengliming.raft.proto.MemberRole;
+import com.zengliming.raft.proto.RequestVote;
+import com.zengliming.raft.proto.RpcCommand;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
-public class CandidateNodeRole extends AbstractNodeRole {
+public class CandidateMemberRole extends AbstractMemberRole {
 
     /**
      * 拥有的票数
@@ -23,7 +24,7 @@ public class CandidateNodeRole extends AbstractNodeRole {
     @Getter
     private Integer votes;
 
-    public CandidateNodeRole(Integer term, Integer votes) {
+    public CandidateMemberRole(Integer term, Integer votes) {
         super(MemberRole.CANDIDATE, term);
         this.votes = votes;
         this.requestVote();
@@ -43,16 +44,16 @@ public class CandidateNodeRole extends AbstractNodeRole {
      *
      * @param term
      */
-    public CandidateNodeRole(Integer term) {
+    public CandidateMemberRole(Integer term) {
         this(term, 1);
     }
 
     private void requestVote() {
         log.info("send request vote!");
-        NodeContext.publish(RpcActor.getId(), RpcCommand.newBuilder()
-                .addAllTargetNodeEndpoints(NodeContext.getNodeManager().filter(Lists.newArrayList(NodeContext.getSelfId())))
+        RaftContext.publish(RpcActor.getId(), RpcCommand.newBuilder()
+                .addAllTargetMemberEndpoints(RaftContext.getMemberManager().filter(Lists.newArrayList(RaftContext.getSelfId())))
                 .setRequestVote(RequestVote.newBuilder()
-                        .setNodeEndpoint(NodeContext.getNodeManager().findMember(NodeContext.getSelfId()).getNodeEndpoint())
+                        .setMemberEndpoint(RaftContext.getMemberManager().findMember(RaftContext.getSelfId()).getMemberEndpoint())
                         .setLastLogIndex(super.getLastLogIndex())
                         .setLastLogTerm(super.getLastLogTerm())
                         .build())

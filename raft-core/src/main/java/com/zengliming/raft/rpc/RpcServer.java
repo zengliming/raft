@@ -1,6 +1,6 @@
 package com.zengliming.raft.rpc;
 
-import com.zengliming.raft.context.NodeContext;
+import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.proto.RpcCommand;
 import com.zengliming.raft.rpc.handler.RpcInboundHandler;
 import io.netty.bootstrap.ServerBootstrap;
@@ -32,7 +32,7 @@ public class RpcServer {
 
     public void start(int port) {
 
-        this.future = NodeContext.getThreadPoolExecutor().submit(() -> {
+        this.future = RaftContext.getThreadPoolExecutor().submit(() -> {
             bossGroup = new NioEventLoopGroup();
             workerGroup = new NioEventLoopGroup();
             try {

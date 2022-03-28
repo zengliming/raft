@@ -9,10 +9,10 @@ import akka.actor.typed.javadsl.AskPattern;
 import com.google.protobuf.GeneratedMessageV3;
 import com.typesafe.config.Config;
 import com.zengliming.raft.common.proto.CommonRoute;
-import com.zengliming.raft.node.NodeManager;
-import com.zengliming.raft.proto.NodeId;
+import com.zengliming.raft.config.RaftConfig;
+import com.zengliming.raft.member.MemberManager;
+import com.zengliming.raft.proto.MemberId;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -26,19 +26,19 @@ import java.util.concurrent.TimeUnit;
  * @author zengliming
  * @date 2022/3/26 22:24
  */
-public class NodeContext {
+public class RaftContext {
 
     /**
      * 当前节点
      */
     @Getter
-    private static NodeId selfId;
+    private static MemberId selfId;
 
     /**
      * 成员列表
      */
     @Getter
-    private static NodeManager nodeManager;
+    private static MemberManager memberManager;
 
     /**
      * 配置信息
@@ -64,27 +64,28 @@ public class NodeContext {
 
     private static volatile boolean init = false;
 
+    @Getter
+    private static RaftConfig raftConfig;
 
-    public static void init(ActorSystem system, DispatcherSelector pinnedDispatcher) {
+    public static void init(ActorSystem system, DispatcherSelector pinnedDispatcher, RaftConfig raftConfig) {
         if (!init) {
-            synchronized (NodeContext.class) {
+            synchronized (RaftContext.class) {
                 if (!init) {
                     init = true;
-                    NodeContext.system = system;
+                    RaftContext.system = system;
                     scheduler = Adapter.toTyped(system.getScheduler());
                     config = system.settings().config();
-                    NodeContext.pinnedDispatcher = pinnedDispatcher;
-                    threadPoolExecutor = new ThreadPoolExecutor(2,8,120, TimeUnit.SECONDS,new ArrayBlockingQueue<>(1024), (r) -> new Thread(r));
+                    RaftContext.pinnedDispatcher = pinnedDispatcher;
+                    RaftContext.raftConfig = raftConfig;
+                    threadPoolExecutor = new ThreadPoolExecutor(2, 8, 120, TimeUnit.SECONDS, new ArrayBlockingQueue<>(1024), (r) -> new Thread(r));
                 }
             }
         }
-
-
     }
 
-    public static void setNodeManager(NodeManager nodeManager) {
-        NodeContext.nodeManager = nodeManager;
-        selfId = nodeManager.getSelfId();
+    public static void setMemberManager(MemberManager memberManager) {
+        RaftContext.memberManager = memberManager;
+        selfId = memberManager.getSelfId();
     }
 
     public static void publish(String to, GeneratedMessageV3 messageV3) {

@@ -1,4 +1,4 @@
-package com.zengliming.raft.node.role;
+package com.zengliming.raft.member.role;
 
 import com.zengliming.raft.proto.MemberRole;
 import lombok.Getter;
@@ -16,13 +16,13 @@ import java.util.concurrent.TimeUnit;
  * @date 2022/3/26 20:09
  */
 @ToString
-public abstract class AbstractNodeRole {
+public abstract class AbstractMemberRole {
 
     /**
      * 节点角色
      */
     @Getter
-    private final MemberRole nodeRole;
+    private final MemberRole memberRole;
 
     /**
      * 任期
@@ -61,10 +61,10 @@ public abstract class AbstractNodeRole {
     @Setter
     private Runnable runnable;
 
-    protected AbstractNodeRole(MemberRole nodeRole, Integer term) {
-        this.nodeRole = nodeRole;
+    protected AbstractMemberRole(MemberRole memberRole, Integer term) {
+        this.memberRole = memberRole;
         this.term = term;
-        this.scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1, r-> new Thread(r, "scheduler-" + nodeRole));
+        this.scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1, r-> new Thread(r, "scheduler-" + memberRole));
         this.timeout = ThreadLocalRandom.current().nextLong(3000L, 4000L);
         this.lastTimestamp = 0L;
         this.lastLogIndex = 0;

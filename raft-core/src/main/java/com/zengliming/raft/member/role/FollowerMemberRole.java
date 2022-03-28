@@ -1,9 +1,9 @@
-package com.zengliming.raft.node.role;
+package com.zengliming.raft.member.role;
 
 import com.zengliming.raft.actor.RaftActor;
-import com.zengliming.raft.context.NodeContext;
+import com.zengliming.raft.context.RaftContext;
+import com.zengliming.raft.proto.MemberId;
 import com.zengliming.raft.proto.MemberRole;
-import com.zengliming.raft.proto.NodeId;
 import com.zengliming.raft.proto.RaftCommand;
 import com.zengliming.raft.proto.RoleChange;
 import lombok.Getter;
@@ -17,26 +17,26 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @ToString
-public class FollowerNodeRole extends AbstractNodeRole {
+public class FollowerMemberRole extends AbstractMemberRole {
 
     /**
      * 投票过的节点
      */
     @Getter
     @Setter
-    private NodeId votedFor;
+    private MemberId votedFor;
 
     /**
      * leader节点
      */
     @Getter
-    private final NodeId leaderId;
+    private final MemberId leaderId;
 
-    public FollowerNodeRole(Integer term) {
+    public FollowerMemberRole(Integer term) {
         this(term, null, null);
     }
 
-    public FollowerNodeRole(Integer term, NodeId leaderId, NodeId votedFor) {
+    public FollowerMemberRole(Integer term, MemberId leaderId, MemberId votedFor) {
         super(MemberRole.FOLLOW, term);
         this.leaderId = leaderId;
         this.votedFor = votedFor;
@@ -50,7 +50,7 @@ public class FollowerNodeRole extends AbstractNodeRole {
                 } catch (InterruptedException e) {
                     log.error("cancel follower task exception:", e);
                 }
-                NodeContext.publish(RaftActor.getId(), RaftCommand.newBuilder().setRoleChange(RoleChange.newBuilder().setTargetRole(MemberRole.CANDIDATE).build()).build());
+                RaftContext.publish(RaftActor.getId(), RaftCommand.newBuilder().setRoleChange(RoleChange.newBuilder().setTargetRole(MemberRole.CANDIDATE).build()).build());
             }
         });
     }

@@ -5,12 +5,9 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import com.google.protobuf.GeneratedMessageV3;
-import com.zengliming.raft.context.NodeContext;
-import com.zengliming.raft.proto.RpcCommand;
+import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.proto.actor.StartActor;
 import lombok.extern.slf4j.Slf4j;
-
-import java.time.Duration;
 
 /**
  * @author zengliming
@@ -43,9 +40,8 @@ public class SupervisorActor extends CommonActor {
                     Behavior<GeneratedMessageV3> behavior = (Behavior<GeneratedMessageV3>) clazz.getMethod("create")
                             .invoke(null);
                     String actorId = (String) clazz.getMethod("getId").invoke(null);
-                    final ActorRef<GeneratedMessageV3> actorRef = getContext().spawn(behavior, actorId, NodeContext.getPinnedDispatcher());
-                    // NodeContext.ask(actorId, RpcCommand.newBuilder().build(), Duration.ofSeconds(10).toMillis()).toCompletableFuture().join();
-                    NodeContext.getActorRefMap().put(actorId, actorRef);
+                    final ActorRef<GeneratedMessageV3> actorRef = getContext().spawn(behavior, actorId, RaftContext.getPinnedDispatcher());
+                    RaftContext.getActorRefMap().put(actorId, actorRef);
                 } catch (Exception e) {
                     log.error("start actor {} fail!", actorClassName, e);
                 }

@@ -1,6 +1,5 @@
-package com.zengliming.raft.actor;
+package com.zengliming.raft.common.proto;
 
-import com.zengliming.raft.common.proto.CommonProto;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;

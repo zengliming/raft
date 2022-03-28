@@ -2,18 +2,16 @@ package com.zengliming.raft.actor;
 
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
-import akka.actor.typed.javadsl.Adapter;
 import akka.actor.typed.javadsl.Behaviors;
 import com.google.protobuf.GeneratedMessageV3;
-import com.zengliming.raft.context.NodeContext;
-import com.zengliming.raft.proto.NodeEndpoint;
-import com.zengliming.raft.proto.NodeId;
+import com.zengliming.raft.context.RaftContext;
+import com.zengliming.raft.proto.MemberEndpoint;
+import com.zengliming.raft.proto.MemberId;
 import com.zengliming.raft.proto.RpcCommand;
 import com.zengliming.raft.rpc.RpcClient;
 import com.zengliming.raft.rpc.RpcServer;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,12 +26,12 @@ public class RpcActor extends CommonActor {
 
     private final RpcServer rpcServer;
 
-    private final Map<NodeId, RpcClient> rpcClientMap;
+    private final Map<MemberId, RpcClient> rpcClientMap;
 
     public RpcActor(ActorContext<GeneratedMessageV3> context) {
         super(getId(), context);
         this.rpcServer = new RpcServer();
-        this.rpcServer.start(9999);
+        this.rpcServer.start(RaftContext.getRaftConfig().getPort());
         this.rpcClientMap = new HashMap<>(16);
     }
 
@@ -49,12 +47,12 @@ public class RpcActor extends CommonActor {
     public boolean processMessage(GeneratedMessageV3 messageV3) {
         if (messageV3 instanceof RpcCommand) {
             RpcCommand command = (RpcCommand) messageV3;
-            final List<NodeEndpoint> nodeEndpoints = command.getTargetNodeEndpointsList();
-            for (NodeEndpoint nodeEndpoint : nodeEndpoints) {
+            final List<MemberEndpoint> memberEndpoints = command.getTargetMemberEndpointsList();
+            for (MemberEndpoint memberEndpoint : memberEndpoints) {
                 try {
-                    final RpcClient rpcClient = rpcClientMap.getOrDefault(nodeEndpoint.getId(), new RpcClient(nodeEndpoint));
+                    final RpcClient rpcClient = rpcClientMap.getOrDefault(memberEndpoint.getId(), new RpcClient(memberEndpoint));
                     rpcClient.request(command);
-                    rpcClientMap.put(nodeEndpoint.getId(), rpcClient);
+                    rpcClientMap.put(memberEndpoint.getId(), rpcClient);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
