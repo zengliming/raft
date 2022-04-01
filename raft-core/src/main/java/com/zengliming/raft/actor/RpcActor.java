@@ -50,7 +50,10 @@ public class RpcActor extends CommonActor {
             final List<MemberEndpoint> memberEndpoints = command.getTargetMemberEndpointsList();
             for (MemberEndpoint memberEndpoint : memberEndpoints) {
                 try {
-                    final RpcClient rpcClient = rpcClientMap.getOrDefault(memberEndpoint.getId(), new RpcClient(memberEndpoint));
+                    RpcClient rpcClient = rpcClientMap.get(memberEndpoint);
+                    if (Objects.isNull(rpcClient)) {
+                        rpcClient = new RpcClient(memberEndpoint);
+                    }
                     rpcClient.request(command);
                     rpcClientMap.put(memberEndpoint.getId(), rpcClient);
                 } catch (Exception e) {

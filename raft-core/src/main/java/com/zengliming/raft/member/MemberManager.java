@@ -1,6 +1,5 @@
 package com.zengliming.raft.member;
 
-import com.typesafe.config.Config;
 import com.zengliming.raft.actor.RaftActor;
 import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.member.role.AbstractMemberRole;
@@ -41,11 +40,10 @@ public class MemberManager {
     public MemberManager(Collection<MemberEndpoint> memberEndpoint, MemberId selfId) {
         this.selfId = selfId;
         this.memberMap = this.buildMemberMap(memberEndpoint);
-        final Config masterConfig = RaftContext.getConfig().getConfig("raft.master-member");
         this.leaderEndpoint = MemberEndpoint.newBuilder()
-                .setHost(masterConfig.getString("host"))
+                .setHost(RaftContext.getRaftConfig().getJoinHost())
                 .setId(MemberId.newBuilder().setName(UUID.randomUUID().toString()).build())
-                .setPort(masterConfig.getInt("port"))
+                .setPort(RaftContext.getRaftConfig().getPort())
                 .build();
         memberMap.put(this.leaderEndpoint.getId(), this.transfer(this.leaderEndpoint));
 
