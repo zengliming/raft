@@ -9,7 +9,9 @@ import lombok.Data;
 @Data
 public final class RaftConfig {
 
-    private Integer port;
+    private String host = "127.0.0.1";
+
+    private Integer port = 9999;
 
     private String joinHost;
 

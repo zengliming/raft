@@ -1,6 +1,8 @@
 package com.zengliming.raft.member;
 
+import com.google.protobuf.GeneratedMessageV3;
 import com.zengliming.raft.actor.RaftActor;
+import com.zengliming.raft.actor.RpcActor;
 import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.member.role.AbstractMemberRole;
 import com.zengliming.raft.member.role.CandidateMemberRole;
@@ -22,7 +24,7 @@ import java.util.stream.Collectors;
 public class MemberManager {
 
     @Getter
-    private final MemberId selfId;
+    private MemberId selfId;
 
     @Getter
     private Map<MemberId, Member> memberMap;
@@ -33,20 +35,41 @@ public class MemberManager {
     private AbstractMemberRole memberRole;
 
 
-    public MemberManager(MemberEndpoint memberEndpoint) {
-        this(Collections.singletonList(memberEndpoint), memberEndpoint.getId());
+    public MemberManager() {
+        init();
     }
 
-    public MemberManager(Collection<MemberEndpoint> memberEndpoint, MemberId selfId) {
-        this.selfId = selfId;
-        this.memberMap = this.buildMemberMap(memberEndpoint);
-        this.leaderEndpoint = MemberEndpoint.newBuilder()
-                .setHost(RaftContext.getRaftConfig().getJoinHost())
+    private void init() {
+        final MemberEndpoint shelfMemberEndpoint = MemberEndpoint.newBuilder()
                 .setId(MemberId.newBuilder().setName(UUID.randomUUID().toString()).build())
+                .setHost(RaftContext.getRaftConfig().getHost())
                 .setPort(RaftContext.getRaftConfig().getPort())
                 .build();
-        memberMap.put(this.leaderEndpoint.getId(), this.transfer(this.leaderEndpoint));
-
+        this.selfId = shelfMemberEndpoint.getId();
+        final MemberEndpoint memberEndpoint = MemberEndpoint.newBuilder()
+                .setId(MemberId.newBuilder().setName(UUID.randomUUID().toString()).build())
+                .setHost(RaftContext.getRaftConfig().getJoinHost())
+                .setPort(RaftContext.getRaftConfig().getJoinPort())
+                .build();
+        List<MemberEndpoint> memberEndpoints = new ArrayList<>();
+        memberEndpoints.add(shelfMemberEndpoint);
+        memberEndpoints.add(memberEndpoint);
+        this.memberMap = this.buildMemberMap(memberEndpoints);
+        try {
+            final GeneratedMessageV3 members = RaftContext.ask(RpcActor.getId(), RpcCommand.newBuilder()
+                    .addTargetMemberEndpoints(memberEndpoint)
+                    .setRequestJoin(RequestJoin.newBuilder()
+                            .setJoinEndpoint(memberEndpoint)
+                            .build()).build(), 3000L).toCompletableFuture().join();
+            this.onSyncMembers(((SyncMembers) members).getMembersList());
+        } catch (Exception e) {
+            log.error("cannot receive request join response: {}", e.getMessage());
+        }
+        RaftContext.publish(RaftActor.getId(), RaftCommand.newBuilder()
+                .setRoleChange(RoleChange.newBuilder()
+                        .setTargetRole(MemberRole.FOLLOW)
+                        .build())
+                .build());
     }
 
 
@@ -96,7 +119,7 @@ public class MemberManager {
                 log.info("member change to candidate!");
                 break;
             case LEADER:
-                log.info("member change to leader!");
+                log.info("member change to leader! all member is {}", this.getMemberMap().keySet());
                 memberRole = new LeaderMemberRole(0, () -> {
                 }, null);
                 break;

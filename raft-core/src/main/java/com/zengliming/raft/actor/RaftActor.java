@@ -6,11 +6,13 @@ import akka.actor.typed.javadsl.Behaviors;
 import com.google.protobuf.GeneratedMessageV3;
 import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.member.MemberManager;
-import com.zengliming.raft.proto.*;
+import com.zengliming.raft.proto.Member;
+import com.zengliming.raft.proto.RaftCommand;
+import com.zengliming.raft.proto.RequestVoteResult;
+import com.zengliming.raft.proto.SyncMembers;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author zengliming
@@ -24,32 +26,8 @@ public class RaftActor extends CommonActor {
 
     public RaftActor(ActorContext<GeneratedMessageV3> context) {
         super(getId(), context);
-        final MemberEndpoint memberEndpoint = MemberEndpoint.newBuilder()
-                .setId(MemberId.newBuilder().setName(UUID.randomUUID().toString()).build())
-                .setHost(RaftContext.getRaftConfig().getJoinHost())
-                .setPort(RaftContext.getRaftConfig().getJoinPort())
-                .build();
-        this.memberManager = new MemberManager(memberEndpoint);
-        this.init(memberEndpoint);
-    }
-
-    private void init(final MemberEndpoint memberEndpoint) {
-        try {
-            final GeneratedMessageV3 members = RaftContext.ask(RpcActor.getId(), RpcCommand.newBuilder()
-                    .addTargetMemberEndpoints(memberEndpoint)
-                    .setRequestJoin(RequestJoin.newBuilder()
-                            .setJoinEndpoint(memberEndpoint)
-                            .build()).build(), 3000L).toCompletableFuture().join();
-            this.memberManager.onSyncMembers(((SyncMembers) members).getMembersList());
-        }catch (Exception e) {
-            log.error("cannot receive request join response: {}", e.getMessage());
-        }
+        this.memberManager = new MemberManager();
         RaftContext.setMemberManager(this.memberManager);
-        RaftContext.publish(getId(), RaftCommand.newBuilder()
-                .setRoleChange(RoleChange.newBuilder()
-                        .setTargetRole(MemberRole.FOLLOW)
-                        .build())
-                .build());
     }
 
     public static String getId() {
