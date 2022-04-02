@@ -35,20 +35,21 @@ message Member {
   ReplicatingState replicating_state = 6;// 复制状态
 }
 
-message ReplicatingState{
+enum ReplicatingState{
+  NOT_FULL = 0; // 没有全部复制
+  FULL = 1; // 全部复制
 
 }
 
 message RaftCommand {
   int64 command_id = 1;
   oneof payload {
-    RequestVote request_vote = 2; // 请求投票
-    RequestVoteResult request_vote_result = 3; // 投票结果
-    AppendEntries append_entries = 4; // 日志追加
-    AppendEntriesResult append_entries_result = 5; // 日志追加结果
-    RequestJoin request_join = 6; // 请求加入
-    RequestLeave request_leave = 7; // 请求离开
-    SyncMembers sync_members = 8; // 同步成员
+    Init init = 2;
+    RequestVote request_vote = 3; // 请求投票
+    RequestVoteResult request_vote_result = 4; // 投票结果
+    AppendEntries append_entries = 5; // 日志追加
+    AppendEntriesResult append_entries_result = 6; // 日志追加结果
+    MembershipChange membership_change = 7; // 成员变更
     RoleChange role_change = 9; // 角色发生变更
   }
 }
@@ -59,21 +60,19 @@ message RaftCommand {
 message RpcCommand {
   repeated MemberEndpoint target_member_endpoints = 1;
   oneof payload {
-    RequestVote request_vote = 2;
-    RequestVoteResult request_vote_result = 3;
-    AppendEntries append_entries = 4;
-    AppendEntriesResult append_entries_result = 5;
-    RequestJoin request_join = 6; // 请求加入
-
+    Init init = 2;
+    RequestVote request_vote = 3;
+    RequestVoteResult request_vote_result = 4;
+    AppendEntries append_entries = 5;
+    AppendEntriesResult append_entries_result = 6;
+    MembershipChange membership_change = 7; // 成员变更
   }
 }
 
-message RequestJoin {
-  MemberEndpoint join_endpoint = 1; // 请求加入
-}
-
-message RequestLeave {
-  MemberEndpoint leave_endpoint = 1; // 请求离开
+message Init {
+  Member leader = 1;
+  repeated Member members = 2;
+  repeated AppendEntries entries = 3;
 }
 
 message RequestVote {
@@ -107,8 +106,14 @@ message AppendEntriesResult {
   bool success = 2; // 是否追加成功
 }
 
-message SyncMembers {
-  repeated Member members = 1;
+message MembershipChange {
+  Member change_member = 1; // 变化的成员
+  MembershipChangeType  membership_change_type = 2; // 变化的类型
+}
+
+enum MembershipChangeType {
+  JOIN = 0;
+  LEAVE = 1;
 }
 
 message RoleChange{

@@ -1,6 +1,5 @@
 package com.zengliming.raft.member;
 
-import com.google.protobuf.GeneratedMessageV3;
 import com.zengliming.raft.actor.RaftActor;
 import com.zengliming.raft.actor.RpcActor;
 import com.zengliming.raft.context.RaftContext;
@@ -14,6 +13,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -56,12 +56,13 @@ public class MemberManager {
         memberEndpoints.add(memberEndpoint);
         this.memberMap = this.buildMemberMap(memberEndpoints);
         try {
-            final GeneratedMessageV3 members = RaftContext.ask(RpcActor.getId(), RpcCommand.newBuilder()
+            RaftContext.ask(RpcActor.getId(), RpcCommand.newBuilder()
                     .addTargetMemberEndpoints(memberEndpoint)
-                    .setRequestJoin(RequestJoin.newBuilder()
-                            .setJoinEndpoint(memberEndpoint)
-                            .build()).build(), 3000L).toCompletableFuture().join();
-            this.onSyncMembers(((SyncMembers) members).getMembersList());
+                    .setMembershipChange(MembershipChange.newBuilder()
+                            .setChangeMember(transfer(memberEndpoint))
+                            .setMembershipChangeType(MembershipChangeType.JOIN)
+                            .build())
+                    .build(), 3000L).toCompletableFuture().join();
         } catch (Exception e) {
             log.error("cannot receive request join response: {}", e.getMessage());
         }
@@ -72,32 +73,43 @@ public class MemberManager {
                 .build());
     }
 
+    public void membershipChange(MembershipChange membershipChange, Consumer<Boolean> callback) {
+        boolean success = false;
+        switch (membershipChange.getMembershipChangeType()) {
+            case LEAVE:
+                this.leave(membershipChange.getChangeMember());
+                success = true;
+                break;
+            case JOIN:
+                this.join(membershipChange.getChangeMember());
+                success = true;
+                break;
+            default:
+                log.warn("unknown membership change type");
+        }
+        if (Objects.nonNull(callback)) {
+            callback.accept(success);
+        }
+    }
 
-    public void join(RequestJoin requestJoin) {
-        final Member member = this.memberMap.get(selfId);
-        if (Objects.equals(member.getRole(), MemberRole.LEADER)) {
-            final MemberEndpoint joinEndpoint = requestJoin.getJoinEndpoint();
+    public void join(final Member member) {
+        final Member selfMember = this.memberMap.get(selfId);
+        if (Objects.equals(selfMember.getRole(), MemberRole.LEADER)) {
+            final MemberEndpoint joinEndpoint = member.getMemberEndpoint();
             memberMap.put(joinEndpoint.getId(), transfer(joinEndpoint));
-            syncMembers();
         }
     }
 
-    public void leave(RequestLeave requestLeave) {
-        final Member member = this.memberMap.get(selfId);
+    public void leave(Member member) {
+        if (!this.memberMap.containsKey(member.getId())) {
+            log.warn("membership leave but can not find member!");
+            return;
+        }
         if (Objects.equals(member.getRole(), MemberRole.LEADER)) {
-            final MemberEndpoint leaveEndpoint = requestLeave.getLeaveEndpoint();
+            final MemberEndpoint leaveEndpoint = member.getMemberEndpoint();
             memberMap.remove(leaveEndpoint.getId());
-            syncMembers();
 
         }
-    }
-
-    public void syncMembers() {
-        RaftContext.publish(RaftActor.getId(), RaftCommand.newBuilder()
-                .setSyncMembers(SyncMembers.newBuilder()
-                        .addAllMembers(memberMap.values())
-                        .build())
-                .build());
     }
 
     public void changeRole(RoleChange roleChange) {

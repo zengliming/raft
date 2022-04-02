@@ -4,15 +4,11 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import com.google.protobuf.GeneratedMessageV3;
+import com.zengliming.raft.common.proto.CommonProto;
 import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.member.MemberManager;
-import com.zengliming.raft.proto.Member;
-import com.zengliming.raft.proto.RaftCommand;
-import com.zengliming.raft.proto.RequestVoteResult;
-import com.zengliming.raft.proto.SyncMembers;
+import com.zengliming.raft.proto.*;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
 
 /**
  * @author zengliming
@@ -43,14 +39,18 @@ public class RaftActor extends CommonActor {
         if (messageV3 instanceof RaftCommand) {
             RaftCommand raftCommand = (RaftCommand) messageV3;
             switch (raftCommand.getPayloadCase()) {
-                case REQUEST_JOIN:
-                    this.memberManager.join(raftCommand.getRequestJoin());
-                    reply(()->SyncMembers.newBuilder()
-                            .addAllMembers(this.memberManager.getMemberMap().values())
+                case INIT:
+                    final Init init = raftCommand.getInit();
+                    this.memberManager.changeRole(RoleChange.newBuilder()
+                            .setLeaderId(init.getLeader().getId())
+                            .setTargetRole(MemberRole.FOLLOW)
                             .build());
-                    break;
-                case REQUEST_LEAVE:
-                    this.memberManager.leave(raftCommand.getRequestLeave());
+                    this.memberManager.onSyncMembers(init.getMembersList());
+                    reply(() -> new CommonProto());
+                case MEMBERSHIP_CHANGE:
+                    final MembershipChange membershipChange = raftCommand.getMembershipChange();
+                    this.memberManager.membershipChange(membershipChange, (success) -> {
+                    });
                     break;
                 case REQUEST_VOTE:
                     final boolean voteResult = this.memberManager.handlerRequestVote(raftCommand.getRequestVote());
@@ -63,10 +63,6 @@ public class RaftActor extends CommonActor {
                     if (requestVoteResult.getVoteGranted()) {
                         this.memberManager.incrVote();
                     }
-                    break;
-                case SYNC_MEMBERS:
-                    final List<Member> members = raftCommand.getSyncMembers().getMembersList();
-                    this.memberManager.onSyncMembers(members);
                     break;
                 case ROLE_CHANGE:
                     this.memberManager.changeRole(raftCommand.getRoleChange());

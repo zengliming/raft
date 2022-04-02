@@ -3,10 +3,7 @@ package com.zengliming.raft.rpc.handler;
 import com.google.protobuf.GeneratedMessageV3;
 import com.zengliming.raft.actor.RaftActor;
 import com.zengliming.raft.context.RaftContext;
-import com.zengliming.raft.proto.AppendEntries;
-import com.zengliming.raft.proto.RaftCommand;
-import com.zengliming.raft.proto.RequestVoteResult;
-import com.zengliming.raft.proto.RpcCommand;
+import com.zengliming.raft.proto.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +19,12 @@ public class RpcInboundHandler extends SimpleChannelInboundHandler<RpcCommand> {
     protected void channelRead0(ChannelHandlerContext ctx, RpcCommand rpcMessage) throws Exception {
         log.debug("rpc server receive message: {}", rpcMessage);
         switch (rpcMessage.getPayloadCase()) {
+            case INIT:
+                final Init init = rpcMessage.getInit();
+                RaftContext.ask(RaftActor.getId(), init, 2000L)
+                        .toCompletableFuture().join();
+                ctx.channel().writeAndFlush(RpcCommand.newBuilder().build());
+                break;
             case REQUEST_VOTE: {
                 log.debug("event is {}", rpcMessage.getRequestVote());
                 final RaftCommand raftCommand = RaftCommand.newBuilder().setRequestVote(rpcMessage.getRequestVote()).build();
@@ -37,9 +40,9 @@ public class RpcInboundHandler extends SimpleChannelInboundHandler<RpcCommand> {
                 RaftContext.publish(RaftActor.getId(), raftCommand);
             }
             break;
-            case REQUEST_JOIN: {
-                log.debug("event is {}", rpcMessage.getRequestJoin());
-                final RaftCommand raftCommand = RaftCommand.newBuilder().setRequestJoin(rpcMessage.getRequestJoin()).build();
+            case MEMBERSHIP_CHANGE: {
+                log.debug("event is {}", rpcMessage.getMembershipChange());
+                final RaftCommand raftCommand = RaftCommand.newBuilder().setMembershipChange(rpcMessage.getMembershipChange()).build();
                 RaftContext.publish(RaftActor.getId(), raftCommand);
             }
             break;
