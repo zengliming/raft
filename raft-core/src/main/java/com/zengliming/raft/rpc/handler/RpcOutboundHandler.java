@@ -28,6 +28,11 @@ public class RpcOutboundHandler extends SimpleChannelInboundHandler<RpcCommand> 
                 log.debug("event is {}", rpcMessage.getRequestVoteResult());
             }
             break;
+            case MEMBERSHIP_CHANGE:{
+                RaftContext.ask(RaftActor.getId(), RaftCommand.newBuilder()
+                        .setMembershipChange(rpcMessage.getMembershipChange())
+                        .build(), 2000L);
+            }break;
             case REQUEST_VOTE:
             case APPEND_ENTRIES:
             default:

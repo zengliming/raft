@@ -56,6 +56,7 @@ public class CandidateMemberRole extends AbstractMemberRole {
                 .addAllTargetMemberEndpoints(RaftContext.getMemberManager().filter(Lists.newArrayList(RaftContext.getSelfId())))
                 .setRequestVote(RequestVote.newBuilder()
                         .setMemberEndpoint(RaftContext.getMemberManager().findMember(RaftContext.getSelfId()).getMemberEndpoint())
+                        .setTerm(super.getLastLogTerm() + 1)
                         .setLastLogIndex(super.getLastLogIndex())
                         .setLastLogTerm(super.getLastLogTerm())
                         .build())

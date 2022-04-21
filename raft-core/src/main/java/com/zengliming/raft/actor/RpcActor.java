@@ -4,6 +4,7 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import com.google.protobuf.GeneratedMessageV3;
+import com.zengliming.raft.common.proto.CommonProto;
 import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.proto.MemberEndpoint;
 import com.zengliming.raft.proto.MemberId;
@@ -50,7 +51,7 @@ public class RpcActor extends CommonActor {
             final List<MemberEndpoint> memberEndpoints = command.getTargetMemberEndpointsList();
             for (MemberEndpoint memberEndpoint : memberEndpoints) {
                 try {
-                    RpcClient rpcClient = rpcClientMap.get(memberEndpoint);
+                    RpcClient rpcClient = rpcClientMap.get(memberEndpoint.getId());
                     if (Objects.isNull(rpcClient)) {
                         rpcClient = new RpcClient(memberEndpoint);
                     }
@@ -60,6 +61,7 @@ public class RpcActor extends CommonActor {
                     e.printStackTrace();
                 }
             }
+            reply(()->new CommonProto());
         }
         return false;
     }

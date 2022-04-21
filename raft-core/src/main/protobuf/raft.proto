@@ -90,7 +90,7 @@ message RequestVoteResult {
 
 message AppendEntries{
   int32 term = 1; // leader当前任期
-  MemberId member_id = 2; // leader节点
+  MemberEndpoint leader = 2; // leader节点
   int32 pre_log_index = 3; // 上一条日志的索引
   int32 pre_log_term = 4; // 上一条日志的任期
   repeated Entry entry = 5; // 日志数据

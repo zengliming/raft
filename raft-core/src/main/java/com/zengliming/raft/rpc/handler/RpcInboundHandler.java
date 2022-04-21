@@ -2,6 +2,7 @@ package com.zengliming.raft.rpc.handler;
 
 import com.google.protobuf.GeneratedMessageV3;
 import com.zengliming.raft.actor.RaftActor;
+import com.zengliming.raft.common.proto.CommonProto;
 import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.proto.*;
 import io.netty.channel.ChannelHandlerContext;
@@ -31,7 +32,7 @@ public class RpcInboundHandler extends SimpleChannelInboundHandler<RpcCommand> {
                 final GeneratedMessageV3 response = RaftContext.ask(RaftActor.getId(), raftCommand, 2000L)
                         .toCompletableFuture().join();
                 final RequestVoteResult requestVoteResult = (RequestVoteResult) response;
-                log.info("receive {} vote result {}", requestVoteResult.getMemberEndpoint().getId(), requestVoteResult.getVoteGranted());
+                log.info("receive {} request vote response result {}", requestVoteResult.getMemberEndpoint().getId(), requestVoteResult.getVoteGranted());
                 ctx.channel().writeAndFlush(RpcCommand.newBuilder().setRequestVoteResult(requestVoteResult).build());
             }
             break;
@@ -44,6 +45,7 @@ public class RpcInboundHandler extends SimpleChannelInboundHandler<RpcCommand> {
                 log.debug("event is {}", rpcMessage.getMembershipChange());
                 final RaftCommand raftCommand = RaftCommand.newBuilder().setMembershipChange(rpcMessage.getMembershipChange()).build();
                 RaftContext.publish(RaftActor.getId(), raftCommand);
+                ctx.channel().writeAndFlush(new CommonProto());
             }
             break;
             case REQUEST_VOTE_RESULT:

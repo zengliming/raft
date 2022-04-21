@@ -23,7 +23,7 @@ public class LeaderMemberRole extends AbstractMemberRole {
     public LeaderMemberRole(Integer term, Runnable timeout, Runnable logReplication) {
         super(MemberRole.LEADER, term);
         super.setRunnable(() -> {
-            log.info("leader task");
+            log.debug("leader task");
             RaftContext.publish(RpcActor.getId(), RpcCommand.newBuilder()
                     .addAllTargetMemberEndpoints(RaftContext.getMemberManager().getMemberMap().values().stream().map(Member::getMemberEndpoint).collect(Collectors.toList()))
                     .setAppendEntries(AppendEntries.newBuilder().build())

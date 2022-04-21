@@ -47,10 +47,12 @@ public class RaftActor extends CommonActor {
                             .build());
                     this.memberManager.onSyncMembers(init.getMembersList());
                     reply(() -> new CommonProto());
+                    break;
                 case MEMBERSHIP_CHANGE:
                     final MembershipChange membershipChange = raftCommand.getMembershipChange();
                     this.memberManager.membershipChange(membershipChange, (success) -> {
                     });
+                    reply(() -> new CommonProto());
                     break;
                 case REQUEST_VOTE:
                     final boolean voteResult = this.memberManager.handlerRequestVote(raftCommand.getRequestVote());
