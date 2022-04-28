@@ -7,7 +7,12 @@ import com.google.protobuf.GeneratedMessageV3;
 import com.zengliming.raft.common.proto.CommonProto;
 import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.member.MemberManager;
-import com.zengliming.raft.proto.*;
+import com.zengliming.raft.proto.Init;
+import com.zengliming.raft.proto.RaftCommand;
+import com.zengliming.raft.proto.RequestVoteResult;
+import com.zengliming.raft.proto.member.MemberRole;
+import com.zengliming.raft.proto.member.MembershipChange;
+import com.zengliming.raft.proto.member.RoleChange;
 import lombok.extern.slf4j.Slf4j;
 
 /**

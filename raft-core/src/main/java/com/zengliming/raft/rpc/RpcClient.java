@@ -1,8 +1,8 @@
 package com.zengliming.raft.rpc;
 
 import com.google.protobuf.GeneratedMessageV3;
-import com.zengliming.raft.proto.MemberEndpoint;
-import com.zengliming.raft.proto.RpcCommand;
+import com.zengliming.raft.proto.member.MemberEndpoint;
+import com.zengliming.raft.proto.rpc.RpcCommand;
 import com.zengliming.raft.rpc.handler.RpcOutboundHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;

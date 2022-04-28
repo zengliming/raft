@@ -1,7 +1,7 @@
 package com.zengliming.raft.rpc;
 
 import com.zengliming.raft.context.RaftContext;
-import com.zengliming.raft.proto.RpcCommand;
+import com.zengliming.raft.proto.rpc.RpcCommand;
 import com.zengliming.raft.rpc.handler.RpcInboundHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;

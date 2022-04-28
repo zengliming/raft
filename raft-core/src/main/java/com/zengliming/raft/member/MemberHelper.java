@@ -1,6 +1,6 @@
 package com.zengliming.raft.member;
 
-import com.zengliming.raft.proto.MemberId;
+import com.zengliming.raft.proto.member.MemberId;
 
 import java.util.Objects;
 

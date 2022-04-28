@@ -1,6 +1,6 @@
 package com.zengliming.raft.member.role;
 
-import com.zengliming.raft.proto.MemberRole;
+import com.zengliming.raft.proto.member.MemberRole;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

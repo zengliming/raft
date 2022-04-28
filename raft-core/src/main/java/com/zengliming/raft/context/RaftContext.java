@@ -11,7 +11,7 @@ import com.typesafe.config.Config;
 import com.zengliming.raft.common.proto.CommonRoute;
 import com.zengliming.raft.config.RaftConfig;
 import com.zengliming.raft.member.MemberManager;
-import com.zengliming.raft.proto.MemberId;
+import com.zengliming.raft.proto.member.MemberId;
 import lombok.Getter;
 
 import java.time.Duration;

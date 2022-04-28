@@ -1,0 +1,56 @@
+syntax = "proto3";
+package proto.member;
+
+
+option java_package = "com.zengliming.raft.proto.member";
+//option java_outer_classname = "Example";
+option java_multiple_files = true;
+
+
+message MemberId {
+
+  string name = 1;
+
+}
+
+message MemberEndpoint {
+  MemberId id = 1;
+  string host = 2;
+  int32 port = 3;
+}
+
+enum MemberRole {
+  LEADER = 0;
+  FOLLOW = 1;
+  CANDIDATE = 2;
+}
+
+message Member {
+  MemberId id = 1;
+  int32 current_term = 2; // 当前任期
+  MemberRole role = 3;
+  MemberId voted_for = 4; // 投了票的节点
+  MemberEndpoint member_endpoint = 5;
+  ReplicatingState replicating_state = 6;// 复制状态
+}
+
+enum ReplicatingState{
+  NOT_FULL = 0; // 没有全部复制
+  FULL = 1; // 全部复制
+
+}
+
+message MembershipChange {
+  Member change_member = 1; // 变化的成员
+  MembershipChangeType  membership_change_type = 2; // 变化的类型
+}
+
+enum MembershipChangeType {
+  JOIN = 0;
+  LEAVE = 1;
+}
+
+message RoleChange{
+  MemberId leader_id = 1;
+  MemberRole target_role = 2;
+}

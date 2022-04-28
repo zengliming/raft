@@ -3,9 +3,9 @@ package com.zengliming.raft.member.role;
 import com.zengliming.raft.actor.RpcActor;
 import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.proto.AppendEntries;
-import com.zengliming.raft.proto.Member;
-import com.zengliming.raft.proto.MemberRole;
-import com.zengliming.raft.proto.RpcCommand;
+import com.zengliming.raft.proto.member.Member;
+import com.zengliming.raft.proto.member.MemberRole;
+import com.zengliming.raft.proto.rpc.RpcCommand;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 

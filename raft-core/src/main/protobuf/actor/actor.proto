@@ -8,3 +8,7 @@ option java_multiple_files = true;
 message StartActor {
   repeated string actor_class_name = 1;
 }
+
+message ShutdownActor {
+  repeated string actor_ids = 1;
+}

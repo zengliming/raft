@@ -1,0 +1,59 @@
+syntax = "proto3";
+package proto.raft;
+
+
+option java_package = "com.zengliming.raft.proto";
+//option java_outer_classname = "Example";
+option java_multiple_files = true;
+import "member/member.proto";
+
+
+message RaftCommand {
+  int64 command_id = 1;
+  oneof payload {
+    Init init = 2;
+    RequestVote request_vote = 3; // 请求投票
+    RequestVoteResult request_vote_result = 4; // 投票结果
+    AppendEntries append_entries = 5; // 日志追加
+    AppendEntriesResult append_entries_result = 6; // 日志追加结果
+    proto.member.MembershipChange membership_change = 7; // 成员变更
+    proto.member.RoleChange role_change = 9; // 角色发生变更
+  }
+}
+
+message Init {
+  proto.member.Member leader = 1;
+  repeated proto.member.Member members = 2;
+  repeated AppendEntries entries = 3;
+}
+
+message RequestVote {
+  int32 term = 1;
+  proto.member.MemberEndpoint member_endpoint = 2; // 候选者节点，即为发送者自己
+  int32 last_log_index = 3; // 候选者最后一条日志的索引
+  int32 last_log_term = 4; // 候选者最后一条日志的term
+}
+
+message RequestVoteResult {
+  int32 term = 1; // 选举term
+  bool vote_granted = 2; //是否投票
+  proto.member.MemberEndpoint member_endpoint = 3;
+}
+
+message AppendEntries{
+  int32 term = 1; // leader当前任期
+  proto.member.MemberEndpoint leader = 2; // leader节点
+  int32 pre_log_index = 3; // 上一条日志的索引
+  int32 pre_log_term = 4; // 上一条日志的任期
+  repeated Entry entry = 5; // 日志数据
+  int32 leader_commit_index = 6; // leader节点已经commit了的索引
+
+  message Entry{
+
+  }
+}
+
+message AppendEntriesResult {
+  int32 term = 1; // leader当前任期
+  bool success = 2; // 是否追加成功
+}

@@ -1,0 +1,23 @@
+syntax = "proto3";
+package proto;
+
+
+option java_package = "com.zengliming.raft.proto.rpc";
+//option java_outer_classname = "Example";
+option java_multiple_files = true;
+import "raft/raft.proto";
+import "member/member.proto";
+
+
+message RpcCommand {
+  repeated proto.member.MemberEndpoint target_member_endpoints = 1;
+  repeated proto.member.MemberEndpoint from_member_endpoints = 2;
+  oneof payload {
+    proto.raft.Init init = 3;
+    proto.raft.RequestVote request_vote = 4;
+    proto.raft.RequestVoteResult request_vote_result = 5;
+    proto.raft.AppendEntries append_entries = 6;
+    proto.raft.AppendEntriesResult append_entries_result = 7;
+    proto.member.MembershipChange membership_change = 8; // 成员变更
+  }
+}

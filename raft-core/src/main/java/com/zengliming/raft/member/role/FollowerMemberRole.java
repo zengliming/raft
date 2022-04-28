@@ -2,10 +2,10 @@ package com.zengliming.raft.member.role;
 
 import com.zengliming.raft.actor.RaftActor;
 import com.zengliming.raft.context.RaftContext;
-import com.zengliming.raft.proto.MemberId;
-import com.zengliming.raft.proto.MemberRole;
 import com.zengliming.raft.proto.RaftCommand;
-import com.zengliming.raft.proto.RoleChange;
+import com.zengliming.raft.proto.member.MemberId;
+import com.zengliming.raft.proto.member.MemberRole;
+import com.zengliming.raft.proto.member.RoleChange;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

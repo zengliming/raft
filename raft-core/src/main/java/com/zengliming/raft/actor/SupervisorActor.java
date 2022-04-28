@@ -5,7 +5,9 @@ import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import com.google.protobuf.GeneratedMessageV3;
+import com.zengliming.raft.common.proto.CommonProto;
 import com.zengliming.raft.context.RaftContext;
+import com.zengliming.raft.proto.actor.ShutdownActor;
 import com.zengliming.raft.proto.actor.StartActor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,6 +48,9 @@ public class SupervisorActor extends CommonActor {
                     log.error("start actor {} fail!", actorClassName, e);
                 }
             }
+        } else if (messageV3 instanceof ShutdownActor) {
+            //todo 关闭
+            reply(() -> new CommonProto());
         }
         return false;
     }

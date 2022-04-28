@@ -3,7 +3,7 @@ package com.zengliming.raft.rpc.handler;
 import com.zengliming.raft.actor.RaftActor;
 import com.zengliming.raft.context.RaftContext;
 import com.zengliming.raft.proto.RaftCommand;
-import com.zengliming.raft.proto.RpcCommand;
+import com.zengliming.raft.proto.rpc.RpcCommand;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;

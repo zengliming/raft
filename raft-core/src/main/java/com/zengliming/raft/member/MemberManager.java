@@ -8,7 +8,11 @@ import com.zengliming.raft.member.role.AbstractMemberRole;
 import com.zengliming.raft.member.role.CandidateMemberRole;
 import com.zengliming.raft.member.role.FollowerMemberRole;
 import com.zengliming.raft.member.role.LeaderMemberRole;
-import com.zengliming.raft.proto.*;
+import com.zengliming.raft.proto.AppendEntries;
+import com.zengliming.raft.proto.RaftCommand;
+import com.zengliming.raft.proto.RequestVote;
+import com.zengliming.raft.proto.member.*;
+import com.zengliming.raft.proto.rpc.RpcCommand;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +85,7 @@ public class MemberManager {
         try {
             RaftContext.ask(RpcActor.getId(), RpcCommand.newBuilder()
                     .addTargetMemberEndpoints(memberEndpoint)
+                    .addFromMemberEndpoints(self.getMemberEndpoint())
                     .setMembershipChange(MembershipChange.newBuilder()
                             .setChangeMember(self)
                             .setMembershipChangeType(MembershipChangeType.JOIN)
@@ -115,18 +120,22 @@ public class MemberManager {
         final Member selfMember = this.memberMap.get(selfId);
         final MemberEndpoint joinEndpoint = member.getMemberEndpoint();
         if (Objects.equals(selfMember.getRole(), MemberRole.LEADER)) {
-            memberMap.put(joinEndpoint.getId(), transfer(joinEndpoint));
-            RaftContext.publish(RpcActor.getId(), RpcCommand.newBuilder()
-                            .addAllTargetMemberEndpoints(filter(Lists.newArrayList(selfId)))
-                    .setMembershipChange(MembershipChange.newBuilder()
-                            .setMembershipChangeType(MembershipChangeType.JOIN)
-                            .setChangeMember(transfer(joinEndpoint))
-                            .build())
-                    .build());
+            if (!memberMap.containsKey(joinEndpoint.getId())) {
+                memberMap.put(joinEndpoint.getId(), transfer(joinEndpoint));
+                RaftContext.publish(RpcActor.getId(), RpcCommand.newBuilder()
+                        .addAllTargetMemberEndpoints(filter(Lists.newArrayList(selfId)))
+                        .addFromMemberEndpoints(self.getMemberEndpoint())
+                        .setMembershipChange(MembershipChange.newBuilder()
+                                .setMembershipChangeType(MembershipChangeType.JOIN)
+                                .setChangeMember(transfer(joinEndpoint))
+                                .build())
+                        .build());
+            }
         } else {
             if (Objects.nonNull(leaderEndpoint)) {
                 RaftContext.publish(RpcActor.getId(), RpcCommand.newBuilder()
                         .addTargetMemberEndpoints(leaderEndpoint)
+                        .addFromMemberEndpoints(self.getMemberEndpoint())
                         .setMembershipChange(MembershipChange.newBuilder()
                                 .setMembershipChangeType(MembershipChangeType.JOIN)
                                 .setChangeMember(transfer(joinEndpoint))
